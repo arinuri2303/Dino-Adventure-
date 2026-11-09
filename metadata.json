@@ -1,0 +1,6 @@
+{
+  "name": "Jelajah Bentang Alam Indonesia — Virtual Lab 3D IPAS SD Kelas 4",
+  "description": "Media Pembelajaran Interaktif (MPI) dan Laboratorium Virtual 3D Tiga Dimensi untuk menjelajahi kenampakan alam daratan, perairan, adaptasi manusia, Game Petualangan Palu Gunung, serta Asesmen Evaluasi C1-C6 IPAS SD Kelas 4.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
