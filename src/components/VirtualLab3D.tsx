@@ -20,7 +20,10 @@ import {
   RotateCcw,
   AlertTriangle,
   ShieldCheck,
-  Layers
+  Layers,
+  Droplets,
+  MapPin,
+  BookOpen
 } from 'lucide-react';
 import { LANDFORM_ZONES_3D, LandformZone3D } from '../data/mpiData';
 import { soundFX, speakIndonesian, stopSpeech } from '../utils/audio';
@@ -40,6 +43,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
 
   // Interactive Lab UI State
   const [selectedZone, setSelectedZone] = useState<LandformZone3D | null>(LANDFORM_ZONES_3D[0]);
+  const [selectedLandmarkIndex, setSelectedLandmarkIndex] = useState<number>(0);
   const [activeCameraPreset, setActiveCameraPreset] = useState<string>('overview');
   const [elevationMdpl, setElevationMdpl] = useState<number>(350);
   const [showElevationPlane, setShowElevationPlane] = useState<boolean>(true);
@@ -48,6 +52,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
   const [isForestDeforested, setIsForestDeforested] = useState<boolean>(false);
   const [isDockCollapsed, setIsDockCollapsed] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const pinLabelRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   // Mutable refs for the WebGL animation loop so React state updates never recreate the scene
   const labStateRef = useRef({
@@ -96,6 +101,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
     if (zone) {
       soundFX.playPinSelect();
       setSelectedZone(zone);
+      setSelectedLandmarkIndex(0);
       labStateRef.current.targetCamPos.set(...zone.cameraPos);
       labStateRef.current.targetControlsLook.set(...zone.cameraTarget);
       labStateRef.current.cameraFlyActive = true;
@@ -109,7 +115,8 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
       setIsSpeaking(false);
     } else {
       setIsSpeaking(true);
-      const text = `${zone.name}. Kategori ${zone.category}, ketinggian ${zone.elevationRange}, suhu rata-rata ${zone.avgTemp}. ${zone.description} Contoh di Indonesia: ${zone.indonesianExamples}. Mata pencaharian warga: ${zone.livelihoods}. Pesan pelestarian: ${zone.conservationTip}`;
+      const landmarkNames = zone.pasuruanLandmarks.map((l) => l.name).join(', ');
+      const text = `${zone.name}. Bentang alam di Kabupaten Pasuruan meliputi: ${landmarkNames}. Penjelasan secara umum: ${zone.generalExplanation} ${zone.pasuruanSpecificTitle}: ${zone.pasuruanSpecificExplanation} Pesan pelestarian: ${zone.conservationTip}`;
       speakIndonesian(text, () => setIsSpeaking(false));
     }
   }, [isSpeaking]);
@@ -595,6 +602,98 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
     highlandGroup.add(pendopoGroup);
     worldGroup.add(highlandGroup);
     registerClickableZone('dataran-tinggi', [-5.5, 4.5, -3.5], [12, 6, 12]);
+
+    // ====================================================================
+    // ZONE 2B: AIR TERJUN LERENG PEGUNUNGAN (Kakek Bodo, Putuk Truno, Coban Baung)
+    // ====================================================================
+    const waterfallGroup = new THREE.Group();
+    waterfallGroup.position.set(-10.2, 1.25, 1.5);
+
+    const cliffRockMat = new THREE.MeshStandardMaterial({
+      color: 0x475569,
+      roughness: 0.9,
+      metalness: 0.08,
+      bumpMap: rockBumpTex,
+      bumpScale: 0.22
+    });
+
+    // Basalt Cliff Walls framing the waterfall
+    const cliffBack = new THREE.Mesh(new THREE.BoxGeometry(3.8, 5.2, 2.4), cliffRockMat);
+    cliffBack.position.set(0, 2.5, -0.8);
+    cliffBack.castShadow = true;
+    cliffBack.receiveShadow = true;
+    waterfallGroup.add(cliffBack);
+
+    const cliffLeft = new THREE.Mesh(new THREE.DodecahedronGeometry(1.45, 1), cliffRockMat);
+    cliffLeft.position.set(-1.55, 2.4, 0.2);
+    cliffLeft.scale.set(0.9, 1.8, 0.9);
+    cliffLeft.castShadow = true;
+    waterfallGroup.add(cliffLeft);
+
+    const cliffRight = new THREE.Mesh(new THREE.DodecahedronGeometry(1.4, 1), cliffRockMat);
+    cliffRight.position.set(1.55, 2.3, 0.2);
+    cliffRight.scale.set(0.9, 1.75, 0.9);
+    cliffRight.castShadow = true;
+    waterfallGroup.add(cliffRight);
+
+    // Vertical Cascading Waterfall Sheet
+    const waterfallSheetMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.35,
+      roughness: 0.12,
+      metalness: 0.3,
+      transparent: true,
+      opacity: 0.92
+    });
+    const waterfallSheet = new THREE.Mesh(new THREE.BoxGeometry(1.55, 4.85, 0.28), waterfallSheetMat);
+    waterfallSheet.position.set(0, 2.45, 0.35);
+    waterfallGroup.add(waterfallSheet);
+
+    // Whitewater Foam Plunge Pool at base of Waterfall
+    const plungePool = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.1, 2.3, 0.18, 24),
+      new THREE.MeshStandardMaterial({
+        color: 0x06b6d4,
+        emissive: 0x0891b2,
+        emissiveIntensity: 0.25,
+        roughness: 0.15,
+        metalness: 0.5
+      })
+    );
+    plungePool.position.set(0, 0.1, 1.15);
+    waterfallGroup.add(plungePool);
+
+    const plungeFoamRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.65, 1.45, 20),
+      new THREE.MeshBasicMaterial({
+        color: 0xe0f2fe,
+        transparent: true,
+        opacity: 0.8,
+        side: THREE.DoubleSide
+      })
+    );
+    plungeFoamRing.rotation.x = -Math.PI / 2;
+    plungeFoamRing.position.set(0, 0.21, 0.85);
+    waterfallGroup.add(plungeFoamRing);
+
+    // Animated Falling Waterfall Droplets & Mist Spray
+    const waterfallDrops: { mesh: THREE.Mesh; phase: number; speed: number; xOffset: number }[] = [];
+    const wfDropGeo = new THREE.SphereGeometry(0.16, 8, 8);
+    const wfDropMat = new THREE.MeshBasicMaterial({ color: 0xf0f9ff, transparent: true, opacity: 0.88 });
+    for (let w = 0; w < 20; w++) {
+      const wm = new THREE.Mesh(wfDropGeo, wfDropMat);
+      waterfallGroup.add(wm);
+      waterfallDrops.push({
+        mesh: wm,
+        phase: w / 20,
+        speed: 0.85 + (w % 4) * 0.18,
+        xOffset: ((w % 5) - 2) * 0.28
+      });
+    }
+
+    worldGroup.add(waterfallGroup);
+    registerClickableZone('air-terjun', [-10.2, 4.0, 1.8], [5.2, 6.2, 5.2]);
 
     // ====================================================================
     // ZONE 3: LEMBAH, DANAU VULKANIK & SUNGAI MENGALIR
@@ -1186,6 +1285,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
         if (foundZone) {
           soundFX.playPinSelect();
           setSelectedZone(foundZone);
+          setSelectedLandmarkIndex(0);
           setActiveCameraPreset(foundZone.id);
           labStateRef.current.targetCamPos.set(...foundZone.cameraPos);
           labStateRef.current.targetControlsLook.set(...foundZone.cameraTarget);
@@ -1262,7 +1362,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
         p.mesh.scale.setScalar(s);
       });
 
-      // 4. Animate River Flow Particles (Faster when raining)
+      // 4. Animate River Flow Particles & Waterfall Cascade (Faster when raining)
       const flowSpeedMult = st.isRaining ? 2.4 : 1.0;
       riverDrops.forEach((d) => {
         d.t = (d.t + dt * d.speed * flowSpeedMult) % 1;
@@ -1271,11 +1371,25 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
         d.mesh.position.y += 0.14;
       });
 
+      waterfallDrops.forEach((wd) => {
+        const prog = (elapsed * wd.speed * flowSpeedMult + wd.phase) % 1;
+        wd.mesh.position.set(
+          wd.xOffset + Math.sin(elapsed * 5 + wd.phase * 6) * 0.05,
+          4.85 - prog * 4.65,
+          0.52 + prog * 0.35
+        );
+        const s = prog > 0.88 ? 1.45 : 0.9;
+        wd.mesh.scale.setScalar(s);
+      });
+      plungeFoamRing.scale.setScalar(0.92 + Math.sin(elapsed * 4.5) * 0.12);
+
       // 5. Update River Color based on Deforestation + Rain (Erosion/Flood simulation!)
       if (st.isForestDeforested && st.isRaining) {
         riverMat.color.lerp(_color.setHex(0x92400e), dt * 3); // Murky brown floodwater
+        waterfallSheetMat.color.lerp(_color.setHex(0xb45309), dt * 3);
       } else {
         riverMat.color.lerp(_color.setHex(0x0ea5e9), dt * 3); // Clear blue river
+        waterfallSheetMat.color.lerp(_color.setHex(0x38bdf8), dt * 3);
       }
 
       // 6. Update Mountain Forest Trees visibility when Deforested vs Reforested
@@ -1320,11 +1434,31 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
         }
       }
 
-      // 9. Animate 3D Pin Markers gentle hover bob
+      // 9. Animate 3D Pin Markers gentle hover bob & project 2D screen badges
+      const canvasW = renderer.domElement.clientWidth;
+      const canvasH = renderer.domElement.clientHeight;
       pinMarkers.forEach((pm) => {
         const isSelected = pm.id === st.selectedZoneId;
-        pm.group.position.y = pm.baseY + Math.sin(elapsed * 2.6 + pm.baseY) * 0.18;
+        const bobY = pm.baseY + Math.sin(elapsed * 2.6 + pm.baseY) * 0.18;
+        pm.group.position.y = bobY;
         pm.group.scale.setScalar(isSelected ? 1.28 : 1.0);
+
+        const badgeEl = pinLabelRefs.current[pm.id];
+        if (badgeEl && canvasW > 0 && canvasH > 0) {
+          _vec3B.copy(pm.group.position);
+          _vec3B.y += 0.95;
+          _vec3B.project(camera);
+          if (_vec3B.z > 1.0 || _vec3B.z < -1.0) {
+            badgeEl.style.opacity = '0';
+            badgeEl.style.pointerEvents = 'none';
+          } else {
+            const sx = (_vec3B.x * 0.5 + 0.5) * canvasW;
+            const sy = (-_vec3B.y * 0.5 + 0.5) * canvasH;
+            badgeEl.style.opacity = '1';
+            badgeEl.style.pointerEvents = 'auto';
+            badgeEl.style.transform = `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`;
+          }
+        }
       });
 
       // 10. Day / Night / Rain Atmosphere Interpolation
@@ -1387,26 +1521,66 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
 
   const estimatedTempC = Math.max(9, Math.round((29 - (elevationMdpl / 100) * 0.6) * 10) / 10);
 
+  const activeLandmark =
+    selectedZone?.pasuruanLandmarks?.[selectedLandmarkIndex] ||
+    selectedZone?.pasuruanLandmarks?.[0] ||
+    null;
+
   return (
     <div className="relative w-full h-[calc(100vh-64px)] overflow-hidden bg-slate-900 select-none">
       {/* Isolated Full-Bleed WebGL Canvas Container */}
       <div ref={canvasMountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-      {/* Top-Left Compact Landform Inspector Card (Solid/RGBA surface — zero backdrop-filter over WebGL) */}
-      {selectedZone && (
-        <div className="absolute top-4 left-4 z-10 w-[min(410px,92vw)] bg-slate-900/95 text-slate-100 rounded-xl border border-slate-700/80 p-4 shadow-xl">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-xs font-medium text-emerald-400">
-                Zona Bentang Alam · {selectedZone.category} · {selectedZone.elevationRange}
+      {/* 3D-Projected Pasuruan Landform Pin Badges Over Diorama */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+        {LANDFORM_ZONES_3D.map((zone) => {
+          const isSelected = selectedZone?.id === zone.id;
+          return (
+            <button
+              key={zone.id}
+              ref={(el) => {
+                pinLabelRefs.current[zone.id] = el;
+              }}
+              onClick={() => flyToPreset(zone.id)}
+              style={{ left: 0, top: 0 }}
+              className={`absolute pointer-events-auto cursor-pointer transition-colors rounded-lg px-2.5 py-1 text-left shadow-lg border ${
+                isSelected
+                  ? 'bg-amber-500 text-slate-950 border-white ring-2 ring-amber-300 z-20'
+                  : 'bg-slate-900/90 text-white border-slate-600/90 hover:bg-slate-800 hover:border-amber-400 z-10'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                <MapPin className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-slate-950' : 'text-amber-400'}`} />
+                <span className="text-[11px] font-extrabold tracking-tight">
+                  {zone.shortPinLabel}
+                </span>
               </div>
-              <h2 className="text-lg font-bold text-white mt-0.5">{selectedZone.name}</h2>
+              {isSelected && (
+                <div className="text-[10px] font-semibold text-slate-900 whitespace-nowrap mt-0.5">
+                  Kab. Pasuruan · Klik untuk detail
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Top-Left Comprehensive Landform Inspector Card (General + Kabupaten Pasuruan Explanations) */}
+      {selectedZone && (
+        <div className="absolute top-3 left-3 z-20 w-[min(460px,94vw)] max-h-[calc(100vh-215px)] overflow-y-auto bg-slate-900/95 text-slate-100 rounded-xl border border-slate-700/90 p-4 shadow-2xl">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Bentang Alam Kab. Pasuruan · {selectedZone.category} · {selectedZone.elevationRange}</span>
+              </div>
+              <h2 className="text-lg font-extrabold text-white mt-0.5">{selectedZone.name}</h2>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => handleToggleSpeech(selectedZone)}
                 className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-                title="Dengarkan Penjelasan Suara Bahasa Indonesia"
+                title="Dengarkan Penjelasan Umum & Khusus Kab. Pasuruan"
               >
                 {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                 <span>{isSpeaking ? 'Hentikan' : 'Suara'}</span>
@@ -1421,26 +1595,89 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
             </div>
           </div>
 
-          <p className="text-xs text-slate-300 leading-relaxed mt-2">
-            {selectedZone.description}
-          </p>
+          {/* Section 1: Nama-Nama Bentang Alam di Kabupaten Pasuruan (Interactive Selector) */}
+          <div className="mt-3 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/40">
+            <div className="text-[11px] font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Nama Bentang Alam di Wilayah Kabupaten Pasuruan:</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {selectedZone.pasuruanLandmarks.map((lm, idx) => {
+                const isActiveLm = idx === selectedLandmarkIndex;
+                return (
+                  <button
+                    key={lm.name}
+                    onClick={() => {
+                      soundFX.playClick();
+                      setSelectedLandmarkIndex(idx);
+                    }}
+                    className={`px-2.5 py-1 rounded-md text-xs font-bold transition-colors cursor-pointer text-left ${
+                      isActiveLm
+                        ? 'bg-amber-400 text-slate-950 shadow-sm'
+                        : 'bg-slate-800/90 text-amber-200 hover:bg-slate-700 border border-amber-500/30'
+                    }`}
+                  >
+                    {lm.name}
+                  </button>
+                );
+              })}
+            </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-slate-800 text-xs">
+            {/* Active Pasuruan Landmark Detail Box */}
+            {activeLandmark && (
+              <div className="mt-2.5 pt-2 border-t border-amber-500/25 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <span className="font-extrabold text-amber-300">{activeLandmark.name}</span>
+                  <span className="font-mono text-[11px] text-emerald-300 bg-slate-900/80 px-2 py-0.5 rounded">
+                    {activeLandmark.kecamatan} · {activeLandmark.elevationOrType}
+                  </span>
+                </div>
+                <p className="text-slate-200 leading-relaxed mt-1">
+                  {activeLandmark.detail}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Penjelasan Bentang Alam Secara Umum */}
+          <div className="mt-2.5 p-2.5 rounded-lg bg-slate-800/85 border border-slate-700">
+            <div className="text-[11px] font-bold text-sky-300 uppercase tracking-wide flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <span>1. Penjelasan {selectedZone.name} Secara Umum</span>
+            </div>
+            <p className="text-xs text-slate-200 leading-relaxed mt-1">
+              {selectedZone.generalExplanation}
+            </p>
+          </div>
+
+          {/* Section 3: Penjelasan Khusus di Kabupaten Pasuruan */}
+          <div className="mt-2.5 p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-600/50">
+            <div className="text-[11px] font-bold text-emerald-300 uppercase tracking-wide flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>2. {selectedZone.pasuruanSpecificTitle}</span>
+            </div>
+            <p className="text-xs text-slate-100 leading-relaxed mt-1">
+              {selectedZone.pasuruanSpecificExplanation}
+            </p>
+          </div>
+
+          {/* Section 4: Metadata Ringkas (Suhu, Biota, Mata Pencaharian & Pelestarian) */}
+          <div className="grid grid-cols-2 gap-2 mt-2.5 pt-2.5 border-t border-slate-800 text-xs">
             <div>
               <span className="text-slate-400 block">Suhu & Ketinggian</span>
               <span className="font-mono font-semibold text-amber-300 tabular-nums">{selectedZone.avgTemp}</span>
             </div>
             <div>
-              <span className="text-slate-400 block">Tanaman & Biota Khas</span>
+              <span className="text-slate-400 block">Potensi / Flora & Fauna Khas</span>
               <span className="font-medium text-slate-200">{selectedZone.floraFauna}</span>
             </div>
             <div className="col-span-2">
-              <span className="text-slate-400 block">Mata Pencaharian Penduduk</span>
+              <span className="text-slate-400 block">Mata Pencaharian Warga Pasuruan</span>
               <span className="font-medium text-emerald-300">{selectedZone.livelihoods}</span>
             </div>
             <div className="col-span-2">
-              <span className="text-slate-400 block">Contoh Nyata di Indonesia</span>
-              <span className="font-medium text-sky-300">{selectedZone.indonesianExamples}</span>
+              <span className="text-slate-400 block">Upaya Pelestarian Alam</span>
+              <span className="font-medium text-sky-300">{selectedZone.conservationTip}</span>
             </div>
           </div>
 
@@ -1457,20 +1694,23 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
 
       {/* Quick Re-open Inspector Button if closed */}
       {!selectedZone && (
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-4 left-4 z-20">
           <button
-            onClick={() => setSelectedZone(LANDFORM_ZONES_3D[0])}
+            onClick={() => {
+              setSelectedZone(LANDFORM_ZONES_3D[0]);
+              setSelectedLandmarkIndex(0);
+            }}
             className="px-3.5 py-2 text-xs font-semibold bg-slate-900/95 text-white rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0"
           >
             <Compass className="w-4 h-4 text-emerald-400" />
-            <span>Tampilkan Kartu Info 3D (Klik Objek 3D)</span>
+            <span>Tampilkan Penjelasan Bentang Alam Kab. Pasuruan</span>
           </button>
         </div>
       )}
 
       {/* Unified Collapsible Bottom Control Dock (Zero Viewport Flank Occlusion, <= 15% footprint) */}
       <div
-        className={`fixed left-1/2 -translate-x-1/2 z-20 w-[min(940px,95vw)] transition-transform duration-200 ${
+        className={`fixed left-1/2 -translate-x-1/2 z-20 w-[min(980px,96vw)] transition-transform duration-200 ${
           isDockCollapsed ? 'bottom-0 translate-y-[calc(100%-36px)]' : 'bottom-4 translate-y-0'
         }`}
       >
@@ -1496,7 +1736,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
 
         {/* Main Dock Body (Solid rgba surface, no backdrop-filter) */}
         <div className="bg-slate-900/95 text-slate-100 rounded-xl border border-slate-700 px-4 py-3 shadow-2xl">
-          {/* Row 1: Camera Fly-To Presets */}
+          {/* Row 1: Camera Fly-To Presets (Pasuruan Landforms) */}
           <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
             <div className="flex flex-wrap items-center gap-1.5">
               <button
@@ -1520,7 +1760,19 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
                 }`}
               >
                 <Mountain className="w-3.5 h-3.5" />
-                <span>Fokus Gunung</span>
+                <span>Gunung (Bromo)</span>
+              </button>
+
+              <button
+                onClick={() => flyToPreset('air-terjun')}
+                className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeCameraPreset === 'air-terjun'
+                    ? 'bg-cyan-600 text-white'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                <Droplets className="w-3.5 h-3.5" />
+                <span>Air Terjun (Kakek Bodo)</span>
               </button>
 
               <button
@@ -1532,7 +1784,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
                 }`}
               >
                 <Trees className="w-3.5 h-3.5" />
-                <span>Fokus Dataran Tinggi</span>
+                <span>Dataran Tinggi (Tutur)</span>
               </button>
 
               <button
@@ -1544,7 +1796,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
                 }`}
               >
                 <Waves className="w-3.5 h-3.5" />
-                <span>Fokus Sungai & Danau</span>
+                <span>Danau (Ranu Grati)</span>
               </button>
 
               <button
@@ -1556,7 +1808,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
                 }`}
               >
                 <Home className="w-3.5 h-3.5" />
-                <span>Fokus Dataran Rendah</span>
+                <span>Dataran Rendah (Bangil)</span>
               </button>
 
               <button
@@ -1568,7 +1820,7 @@ export const VirtualLab3D: React.FC<VirtualLab3DProps> = ({ onNavigateTab }) => 
                 }`}
               >
                 <Anchor className="w-3.5 h-3.5" />
-                <span>Fokus Pantai & Laut</span>
+                <span>Laut (Pantai Lekok)</span>
               </button>
             </div>
 

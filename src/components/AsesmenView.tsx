@@ -54,6 +54,7 @@ export const AsesmenView: React.FC<AsesmenViewProps> = ({
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
   // Leaderboard & Supabase State
+  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(INITIAL_LEADERBOARD);
   const [isLoadingDb, setIsLoadingDb] = useState<boolean>(false);
   const [isSavingDb, setIsSavingDb] = useState<boolean>(false);
@@ -307,13 +308,13 @@ export const AsesmenView: React.FC<AsesmenViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
             <div className="text-xs font-semibold text-sky-700">
-              Komponen 5 · Asesmen Evaluasi Resmi Berbasis Taksonomi Bloom
+              Komponen 5 · Asesmen Evaluasi Kelas 4 SD (Materi, Virtual Lab 3D & Kab. Pasuruan)
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mt-1">
-              Asesmen Evaluasi C1–C6 Bentang Alam Indonesia
+              Asesmen Evaluasi Bentang Alam Indonesia & Kabupaten Pasuruan
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              Terdiri atas 4 Soal LOTS (C1 Mengingat, C2 Memahami, C3 Menerapkan) dan 6 Soal HOTS (C4 Menganalisis, C5 Mengevaluasi, C6 Mencipta).
+              Terdiri atas 10 soal sesuai kemampuan Siswa Kelas 4 SD: <strong>4 Soal LOTS</strong> (C1 Mengingat, C2 Memahami, C3 Menerapkan) dan <strong>6 Soal HOTS</strong> (C4 Menganalisis, C5 Mengevaluasi, C6 Mencipta) dari Materi & Virtual Lab 3D.
             </p>
           </div>
 
@@ -333,8 +334,21 @@ export const AsesmenView: React.FC<AsesmenViewProps> = ({
           {/* Left 8 Cols: Active Question Card */}
           <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4">
-              <div className="text-xs font-mono font-semibold text-sky-700">
-                Soal Nomor {activeQuestion.id} dari 10 · Bagian {activeQuestion.part} ({activeQuestion.cognitiveLevel})
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-bold ${
+                      activeQuestion.part === 'LOTS'
+                        ? 'bg-sky-100 text-sky-900 border border-sky-200'
+                        : 'bg-amber-100 text-amber-950 border border-amber-300'
+                    }`}
+                  >
+                    Soal {activeQuestion.id}/10 · {activeQuestion.part} ({activeQuestion.cognitiveLevel})
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    {activeQuestion.sourceTopic}
+                  </span>
+                </div>
               </div>
               <div className="text-xs text-slate-500">
                 Siswa: <strong className="text-slate-800">{studentName}</strong> ({studentClass})
@@ -527,200 +541,237 @@ export const AsesmenView: React.FC<AsesmenViewProps> = ({
                   )}
                 </div>
               )}
+
+              <div className="pt-2 border-t border-slate-200">
+                <button
+                  onClick={() => {
+                    soundFX.playClick();
+                    setShowLeaderboard((prev) => !prev);
+                  }}
+                  className="w-full py-2.5 px-4 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Award className="w-4 h-4" />
+                  <span>
+                    {showLeaderboard ? 'Sembunyikan Papan Skor' : 'Lihat Papan Skor'}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: KOMPONEN 6 — DATABASE SUPABASE & LEADERBOARD */}
-      <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      {/* SECTION 2: KOMPONEN 6 — TOMBOL LIHAT PAPAN SKOR & LEADERBOARD */}
+      <section className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="text-xs font-semibold text-emerald-700">
-              Komponen 6 · Integrasi Cloud Database Supabase (furuwnqyzkovznoofczb.supabase.co)
+              Komponen 6 · Papan Skor Siswa & Integrasi Database Supabase
             </div>
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
-              Papan Skor Siswa (Leaderboard) & Rekap Database
+            <h2 className="text-lg md:text-xl font-bold text-slate-900 mt-0.5">
+              Papan Skor Siswa (Leaderboard)
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Status Database: {dbSourceStatus}
-            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={fetchLeaderboardData}
-              className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDb ? 'animate-spin' : ''}`} />
-              <span>Sinkronkan Supabase</span>
-            </button>
-
-            <button
-              onClick={handleSaveToSupabase}
-              disabled={isSavingDb}
-              className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Simpan Skor Saya Sekarang</span>
-            </button>
-
-            <button
-              onClick={handleDownloadCsv}
-              className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Unduh Rekap CSV</span>
-            </button>
-
-            <button
-              onClick={() => setShowDbConfigModal((prev) => !prev)}
-              className={`px-3.5 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
-                needsTableSetup
-                  ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold'
-                  : 'bg-amber-100 hover:bg-amber-200 text-amber-950'
-              }`}
-            >
-              <Code2 className="w-3.5 h-3.5" />
-              <span>{needsTableSetup ? 'Setup SQL Supabase' : 'Konfigurasi Database'}</span>
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              soundFX.playClick();
+              setShowLeaderboard((prev) => !prev);
+            }}
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+              showLeaderboard
+                ? 'bg-slate-800 hover:bg-slate-700 text-white'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
+          >
+            <Award className="w-4 h-4" />
+            <span>{showLeaderboard ? 'Sembunyikan Papan Skor' : 'Lihat Papan Skor'}</span>
+          </button>
         </div>
 
-        {/* Supabase Setup & Table Config Drawer */}
-        {showDbConfigModal && (
-          <div className="p-5 rounded-xl bg-slate-900 text-slate-100 space-y-4 border border-slate-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-emerald-400">
-                  Konfigurasi Tabel Supabase ({SUPABASE_URL})
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Jika tabel <code className="text-amber-300">public.{tableName}</code> belum dibuat di Supabase Anda, salin dan jalankan SQL di bawah ini pada menu <strong>SQL Editor</strong> di Dashboard Supabase.
-                </p>
+        {showLeaderboard && (
+          <div className="mt-6 pt-5 border-t border-slate-200 space-y-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <p className="text-xs text-slate-500">
+                Status Database: {dbSourceStatus}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  onClick={fetchLeaderboardData}
+                  className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDb ? 'animate-spin' : ''}`} />
+                  <span>Sinkronkan Supabase</span>
+                </button>
+
+                <button
+                  onClick={handleSaveToSupabase}
+                  disabled={isSavingDb}
+                  className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Simpan Skor Saya Sekarang</span>
+                </button>
+
+                <button
+                  onClick={handleDownloadCsv}
+                  className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Unduh Rekap CSV</span>
+                </button>
+
+                <button
+                  onClick={() => setShowDbConfigModal((prev) => !prev)}
+                  className={`px-3.5 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 ${
+                    needsTableSetup
+                      ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold'
+                      : 'bg-amber-100 hover:bg-amber-200 text-amber-950'
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                  <span>{needsTableSetup ? 'Setup SQL Supabase' : 'Konfigurasi Database'}</span>
+                </button>
               </div>
-              <button
-                onClick={() => setShowDbConfigModal(false)}
-                className="text-xs text-slate-400 hover:text-white cursor-pointer"
-              >
-                Tutup
-              </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-              <div className="lg:col-span-5 space-y-3">
-                <div>
-                  <label className="block text-xs text-slate-300 mb-1">
-                    Nama Tabel Supabase:
-                  </label>
-                  <input
-                    type="text"
-                    value={tableName}
-                    onChange={(e) => {
-                      const val = e.target.value.trim() || DEFAULT_SUPABASE_TABLE;
-                      setTableName(val);
-                      localStorage.setItem(SUPABASE_TABLE_STORAGE_KEY, val);
-                    }}
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-800 border border-slate-700 text-white font-mono"
-                  />
-                </div>
-
-                <div className="flex flex-wrap gap-2 pt-1">
+            {/* Supabase Setup & Table Config Drawer */}
+            {showDbConfigModal && (
+              <div className="p-5 rounded-xl bg-slate-900 text-slate-100 space-y-4 border border-slate-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-emerald-400">
+                      Konfigurasi Tabel Supabase ({SUPABASE_URL})
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Jika tabel <code className="text-amber-300">public.{tableName}</code> belum dibuat di Supabase Anda, salin dan jalankan SQL di bawah ini pada menu <strong>SQL Editor</strong> di Dashboard Supabase.
+                    </p>
+                  </div>
                   <button
-                    onClick={handleCopySql}
-                    className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer"
+                    onClick={() => setShowDbConfigModal(false)}
+                    className="text-xs text-slate-400 hover:text-white cursor-pointer"
                   >
-                    {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedSql ? 'SQL Berhasil Disalin!' : 'Salin SQL Tabel Supabase'}</span>
+                    Tutup
                   </button>
+                </div>
 
-                  <a
-                    href="https://supabase.com/dashboard/project/furuwnqyzkovznoofczb/sql/new"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-500 text-white flex items-center gap-1.5"
-                  >
-                    <Database className="w-3.5 h-3.5" />
-                    <span>Buka Supabase SQL Editor</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                  <div className="lg:col-span-5 space-y-3">
+                    <div>
+                      <label className="block text-xs text-slate-300 mb-1">
+                        Nama Tabel Supabase:
+                      </label>
+                      <input
+                        type="text"
+                        value={tableName}
+                        onChange={(e) => {
+                          const val = e.target.value.trim() || DEFAULT_SUPABASE_TABLE;
+                          setTableName(val);
+                          localStorage.setItem(SUPABASE_TABLE_STORAGE_KEY, val);
+                        }}
+                        className="w-full px-3 py-2 text-xs rounded-lg bg-slate-800 border border-slate-700 text-white font-mono"
+                      />
+                    </div>
 
-                  <a
-                    href={SPREADSHEET_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5"
-                  >
-                    <span>Buka Google Spreadsheet</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <button
+                        onClick={handleCopySql}
+                        className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer"
+                      >
+                        {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedSql ? 'SQL Berhasil Disalin!' : 'Salin SQL Tabel Supabase'}</span>
+                      </button>
+
+                      <a
+                        href="https://supabase.com/dashboard/project/furuwnqyzkovznoofczb/sql/new"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-500 text-white flex items-center gap-1.5"
+                      >
+                        <Database className="w-3.5 h-3.5" />
+                        <span>Buka Supabase SQL Editor</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+
+                      <a
+                        href={SPREADSHEET_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5"
+                      >
+                        <span>Buka Google Spreadsheet</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-7">
+                    <pre className="p-3.5 rounded-lg bg-slate-950 text-[11px] font-mono text-emerald-300 overflow-x-auto leading-relaxed border border-slate-800">
+                      {SUPABASE_SETUP_SQL}
+                    </pre>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="lg:col-span-7">
-                <pre className="p-3.5 rounded-lg bg-slate-950 text-[11px] font-mono text-emerald-300 overflow-x-auto leading-relaxed border border-slate-800">
-                  {SUPABASE_SETUP_SQL}
-                </pre>
-              </div>
+            {/* Leaderboard Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs font-semibold text-slate-500">
+                    <th className="py-3 px-4">Peringkat</th>
+                    <th className="py-3 px-4">Nama Siswa</th>
+                    <th className="py-3 px-4">Kelas</th>
+                    <th className="py-3 px-4 text-right">Kuis Sub-Bab</th>
+                    <th className="py-3 px-4 text-right">Palu Gunung</th>
+                    <th className="py-3 px-4 text-right">LOTS (C1-C3)</th>
+                    <th className="py-3 px-4 text-right">HOTS (C4-C6)</th>
+                    <th className="py-3 px-4 text-right">Total Skor</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 text-sm">
+                  {leaderboard.map((entry, idx) => (
+                    <tr key={`${entry.nama}-${idx}`} className="hover:bg-slate-50/80">
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-700 tabular-nums">
+                        #{idx + 1}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-slate-900">
+                        {entry.nama}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">
+                        {entry.kelas}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
+                        {entry.skorKuisSubBab}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
+                        {entry.skorPaluGunung}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
+                        {entry.skorAsesmenC1C3}%
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
+                        {entry.skorAsesmenC4C6}%
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono font-bold tabular-nums text-emerald-700">
+                        {entry.totalSkor}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
-
-        {/* Leaderboard Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-xs font-semibold text-slate-500">
-                <th className="py-3 px-4">Peringkat</th>
-                <th className="py-3 px-4">Nama Siswa</th>
-                <th className="py-3 px-4">Kelas</th>
-                <th className="py-3 px-4 text-right">Kuis Sub-Bab</th>
-                <th className="py-3 px-4 text-right">Palu Gunung</th>
-                <th className="py-3 px-4 text-right">LOTS (C1-C3)</th>
-                <th className="py-3 px-4 text-right">HOTS (C4-C6)</th>
-                <th className="py-3 px-4 text-right">Total Skor</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-sm">
-              {leaderboard.map((entry, idx) => (
-                <tr key={`${entry.nama}-${idx}`} className="hover:bg-slate-50/80">
-                  <td className="py-3 px-4 font-mono font-semibold text-slate-700 tabular-nums">
-                    #{idx + 1}
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-slate-900">
-                    {entry.nama}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    {entry.kelas}
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
-                    {entry.skorKuisSubBab}
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
-                    {entry.skorPaluGunung}
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
-                    {entry.skorAsesmenC1C3}%
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-700">
-                    {entry.skorAsesmenC4C6}%
-                  </td>
-                  <td className="py-3 px-4 text-right font-mono font-bold tabular-nums text-emerald-700">
-                    {entry.totalSkor}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </section>
 
-      {/* SECTION 3: KOMPONEN 7 — PROFIL PENGEMBANG & CAPAIAN PEMBELAJARAN */}
+      {/* SECTION 3: KOMPONEN 7 — PROFIL PENGEMBANG MEDIA PEMBELAJARAN */}
       <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
             <div className="text-xs font-semibold text-emerald-700">
-              Komponen 7 · Identitas Pengembang & Kurikulum Merdeka
+              Komponen 7 · Identitas Pengembang Media Pembelajaran
             </div>
             <h2 className="text-xl font-bold text-slate-900 mt-0.5">
               Profil Pengembang Media Pembelajaran Interaktif
@@ -760,36 +811,15 @@ export const AsesmenView: React.FC<AsesmenViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div className="lg:col-span-4 flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                <User className="w-7 h-7" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-slate-900">{devProfile.nama}</h3>
-                <p className="text-xs font-medium text-emerald-700">{devProfile.peran}</p>
-                <p className="text-xs text-slate-600">{devProfile.instansi}</p>
-                <p className="text-xs text-slate-500 pt-1">{devProfile.mapel}</p>
-              </div>
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+              <User className="w-7 h-7" />
             </div>
-
-            <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                <div className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-emerald-600" />
-                  <span>Capaian Pembelajaran (CP)</span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">{devProfile.cp}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                <div className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-sky-600" />
-                  <span>Tujuan Pembelajaran (TP)</span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">
-                  {devProfile.tp}
-                </p>
-              </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-slate-900">{devProfile.nama}</h3>
+              <p className="text-xs font-medium text-emerald-700">{devProfile.peran}</p>
+              <p className="text-xs text-slate-600">{devProfile.instansi}</p>
+              <p className="text-xs text-slate-500 pt-1">{devProfile.mapel}</p>
             </div>
           </div>
         )}

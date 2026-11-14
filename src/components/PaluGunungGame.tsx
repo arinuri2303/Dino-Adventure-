@@ -375,47 +375,94 @@ export const PaluGunungGame: React.FC<PaluGunungGameProps> = ({
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Sky Background Gradient
+      // 1. Golden Sunrise Sky over Kaldera Tengger (Penanjakan Bromo Sunrise)
       const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      skyGrad.addColorStop(0, '#0f172a');
-      skyGrad.addColorStop(0.55, '#1e293b');
-      skyGrad.addColorStop(1, '#334155');
+      skyGrad.addColorStop(0, '#0c4a6e');
+      skyGrad.addColorStop(0.32, '#0284c7');
+      skyGrad.addColorStop(0.62, '#fb923c');
+      skyGrad.addColorStop(0.82, '#fde68a');
+      skyGrad.addColorStop(1, '#78350f');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Ambient Volcanic Glow behind crater
-      const glowRadius = 95 + Math.sin(time * 2) * 12 + st.burstIntensity * 45;
-      const craterGlow = ctx.createRadialGradient(360, 110, 10, 360, 110, glowRadius);
-      craterGlow.addColorStop(0, 'rgba(249, 115, 22, 0.75)');
-      craterGlow.addColorStop(0.5, 'rgba(234, 88, 12, 0.25)');
+      // Morning Sunrise Sun Disk behind Gunung Semeru & Bromo
+      const sunGrad = ctx.createRadialGradient(540, 145, 8, 540, 145, 95);
+      sunGrad.addColorStop(0, 'rgba(254, 249, 195, 0.95)');
+      sunGrad.addColorStop(0.35, 'rgba(251, 146, 60, 0.45)');
+      sunGrad.addColorStop(1, 'rgba(251, 146, 60, 0)');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(540, 145, 95, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Distant Gunung Semeru (Mahameru 3.676 mdpl) on Right Horizon
+      const semeruGrad = ctx.createLinearGradient(595, 68, 595, 290);
+      semeruGrad.addColorStop(0, '#475569');
+      semeruGrad.addColorStop(0.55, '#64748b');
+      semeruGrad.addColorStop(1, '#94a3b8');
+      ctx.fillStyle = semeruGrad;
+      ctx.beginPath();
+      ctx.moveTo(455, 290);
+      ctx.lineTo(582, 72);
+      ctx.lineTo(608, 72);
+      ctx.lineTo(715, 290);
+      ctx.closePath();
+      ctx.fill();
+
+      // Subtle Semeru distant steam puff
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.45)';
+      ctx.beginPath();
+      ctx.arc(595, 56 + Math.sin(time * 1.5) * 3, 14, 0, Math.PI * 2);
+      ctx.arc(606, 46 + Math.cos(time * 1.2) * 3, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Distant Kaldera Tengger Wall & Pegunungan Widodaren
+      ctx.fillStyle = '#57534e';
+      ctx.beginPath();
+      ctx.moveTo(0, 320);
+      ctx.lineTo(0, 215);
+      ctx.lineTo(85, 200);
+      ctx.lineTo(220, 250);
+      ctx.lineTo(510, 235);
+      ctx.lineTo(665, 205);
+      ctx.lineTo(720, 220);
+      ctx.lineTo(720, 320);
+      ctx.closePath();
+      ctx.fill();
+
+      // Ambient Volcanic Glow behind Kawah Gunung Bromo
+      const glowRadius = 105 + Math.sin(time * 2) * 12 + st.burstIntensity * 50;
+      const craterGlow = ctx.createRadialGradient(360, 112, 12, 360, 112, glowRadius);
+      craterGlow.addColorStop(0, 'rgba(249, 115, 22, 0.85)');
+      craterGlow.addColorStop(0.5, 'rgba(234, 88, 12, 0.3)');
       craterGlow.addColorStop(1, 'rgba(234, 88, 12, 0)');
       ctx.fillStyle = craterGlow;
       ctx.beginPath();
-      ctx.arc(360, 110, glowRadius, 0, Math.PI * 2);
+      ctx.arc(360, 112, glowRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Ambient continuous gentle crater smoke
-      if (Math.random() < 0.22) {
+      // Ambient continuous white-grey sulfur smoke from Kawah Bromo
+      if (Math.random() < 0.28) {
         st.smokeParticles.push({
-          x: 360 + (Math.random() - 0.5) * 26,
+          x: 360 + (Math.random() - 0.5) * 38,
           y: 108,
-          vx: (Math.random() - 0.5) * 0.6,
-          vy: -(0.6 + Math.random() * 0.8),
-          radius: 10 + Math.random() * 14,
-          alpha: 0.45,
-          maxAlpha: 0.45,
+          vx: (Math.random() - 0.35) * 0.7,
+          vy: -(0.75 + Math.random() * 0.9),
+          radius: 12 + Math.random() * 16,
+          alpha: 0.55,
+          maxAlpha: 0.55,
           isSpark: false,
-          color: '#cbd5e1'
+          color: '#f1f5f9'
         });
       }
 
-      // 2. Update & Draw Volcanic Smoke & Sparks Particle System
+      // 3. Update & Draw Kawah Bromo Smoke & Sparks Particle System
       for (let i = st.smokeParticles.length - 1; i >= 0; i--) {
         const p = st.smokeParticles[i];
         p.x += p.vx;
         p.y += p.vy;
         if (!p.isSpark) {
-          p.radius += 0.22;
+          p.radius += 0.24;
           p.alpha -= 0.008;
         } else {
           p.vy += 0.05;
@@ -436,49 +483,168 @@ export const PaluGunungGame: React.FC<PaluGunungGameProps> = ({
         ctx.restore();
       }
 
-      // Distant Pegunungan Silhouette
-      ctx.fillStyle = '#1e293b';
+      // 4. Gunung Batok (Iconic Green-Brown Grooved Cone next to Bromo on the Left)
+      const batokGrad = ctx.createLinearGradient(135, 165, 135, 345);
+      batokGrad.addColorStop(0, '#4d7c0f');
+      batokGrad.addColorStop(0.5, '#3f6212');
+      batokGrad.addColorStop(1, '#365314');
+      ctx.fillStyle = batokGrad;
       ctx.beginPath();
-      ctx.moveTo(0, 420);
-      ctx.lineTo(110, 210);
-      ctx.lineTo(230, 310);
-      ctx.lineTo(540, 180);
-      ctx.lineTo(720, 420);
+      ctx.moveTo(-15, 345);
+      ctx.lineTo(102, 172);
+      ctx.lineTo(162, 172);
+      ctx.lineTo(275, 345);
       ctx.closePath();
       ctx.fill();
 
-      // 3. Main Volcanic Mountain Body
-      const mtGrad = ctx.createLinearGradient(360, 100, 360, 420);
-      mtGrad.addColorStop(0, '#44403c');
-      mtGrad.addColorStop(0.45, '#3f6212');
-      mtGrad.addColorStop(1, '#14532d');
-      ctx.fillStyle = mtGrad;
+      // Gunung Batok characteristic radial erosion ribs
+      ctx.strokeStyle = 'rgba(20, 83, 45, 0.55)';
+      ctx.lineWidth = 2.5;
+      for (let r = -3; r <= 3; r++) {
+        ctx.beginPath();
+        ctx.moveTo(132 + r * 7, 174);
+        ctx.lineTo(132 + r * 32, 342);
+        ctx.stroke();
+      }
+
+      // 5. Main Interactive Kawah Gunung Bromo (2.329 mdpl) with Eroded Ash Gullies
+      const bromoGrad = ctx.createLinearGradient(360, 105, 360, 390);
+      bromoGrad.addColorStop(0, '#78716c');
+      bromoGrad.addColorStop(0.35, '#a8a29e');
+      bromoGrad.addColorStop(0.7, '#78350f');
+      bromoGrad.addColorStop(1, '#44403c');
+      ctx.fillStyle = bromoGrad;
       ctx.beginPath();
-      ctx.moveTo(65, 420);
-      ctx.lineTo(315, 110);
-      ctx.lineTo(405, 110);
-      ctx.lineTo(645, 420);
+      ctx.moveTo(85, 390);
+      ctx.lineTo(288, 112);
+      ctx.lineTo(432, 112);
+      ctx.lineTo(635, 390);
       ctx.closePath();
       ctx.fill();
 
-      // Crater Rim & Glowing Lava Mouth
+      // Iconic radial volcanic ash gullies (Alur Erosi Kawah Bromo)
+      ctx.strokeStyle = 'rgba(68, 64, 60, 0.65)';
+      ctx.lineWidth = 3;
+      const gullyOffsets = [-55, -35, -18, 0, 18, 35, 55];
+      gullyOffsets.forEach((go) => {
+        ctx.beginPath();
+        ctx.moveTo(360 + go, 120);
+        ctx.quadraticCurveTo(360 + go * 1.9, 240, 360 + go * 3.6, 382);
+        ctx.stroke();
+      });
+
+      // Wide Kawah Bromo Caldera Rim & Glowing Sulfur-Lava Crater Mouth
+      ctx.fillStyle = '#44403c';
+      ctx.beginPath();
+      ctx.ellipse(360, 112, 72, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+
       ctx.fillStyle = '#f97316';
       ctx.beginPath();
-      ctx.ellipse(360, 110, 45, 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(360, 112, 54, 10, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Lava veins down upper cone
-      ctx.strokeStyle = '#fb923c';
-      ctx.lineWidth = 4;
+      ctx.fillStyle = '#fef08a';
       ctx.beginPath();
-      ctx.moveTo(345, 118);
-      ctx.quadraticCurveTo(335, 155, 350, 185);
-      ctx.moveTo(375, 118);
-      ctx.quadraticCurveTo(390, 150, 378, 175);
+      ctx.ellipse(360, 112, 28, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Iconic Tangga Kawah Bromo (Staircase on the upper slope from Pos 7 to Pos 10)
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(315, 206);
+      ctx.lineTo(385, 176);
+      ctx.lineTo(332, 145);
+      ctx.lineTo(360, 115);
       ctx.stroke();
 
-      // 4. Winding Climbing Trail & 10 Pos Nodes
-      ctx.strokeStyle = 'rgba(254, 240, 138, 0.65)';
+      // 6. Lautan Pasir Berbisik (Tengger Sea of Sand) & Morning Mist at Base
+      const sandGrad = ctx.createLinearGradient(0, 338, 0, 420);
+      sandGrad.addColorStop(0, '#57534e');
+      sandGrad.addColorStop(0.4, '#44403c');
+      sandGrad.addColorStop(1, '#292524');
+      ctx.fillStyle = sandGrad;
+      ctx.fillRect(0, 342, canvas.width, 78);
+
+      // Golden Morning Mist drifting across Lautan Pasir
+      const mistGrad = ctx.createLinearGradient(0, 322, 0, 368);
+      mistGrad.addColorStop(0, 'rgba(254, 243, 199, 0)');
+      mistGrad.addColorStop(0.5, 'rgba(254, 243, 199, 0.38)');
+      mistGrad.addColorStop(1, 'rgba(254, 243, 199, 0)');
+      ctx.fillStyle = mistGrad;
+      ctx.fillRect(0, 322, canvas.width, 46);
+
+      // Pura Luhur Poten Silhouette in Lautan Pasir (Right foreground)
+      ctx.save();
+      ctx.translate(565, 348);
+      ctx.fillStyle = '#292524';
+      // Candi Bentar split gate
+      ctx.beginPath();
+      ctx.moveTo(-28, 12);
+      ctx.lineTo(-28, -16);
+      ctx.lineTo(-14, -6);
+      ctx.lineTo(-14, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(14, 12);
+      ctx.lineTo(14, -6);
+      ctx.lineTo(28, -16);
+      ctx.lineTo(28, 12);
+      ctx.closePath();
+      ctx.fill();
+      // Main Padmasana / Meru roof
+      ctx.fillRect(-8, -8, 16, 20);
+      ctx.beginPath();
+      ctx.moveTo(-13, -8);
+      ctx.lineTo(0, -20);
+      ctx.lineTo(13, -8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Iconic Red Jeep Hardtop Bromo parked near Pos 1 in Lautan Pasir
+      ctx.save();
+      ctx.translate(78, 382);
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(-22, -12, 44, 12);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(-14, -22, 26, 10);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-11, -20, 10, 7);
+      ctx.fillRect(2, -20, 8, 7);
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(-13, 2, 6, 0, Math.PI * 2);
+      ctx.arc(13, 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Landmark Labels on the Bromo Panorama
+      const drawLandmarkTag = (lx: number, ly: number, text: string) => {
+        ctx.save();
+        ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+        const tw = ctx.measureText(text).width + 14;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.75)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.roundRect(lx - tw / 2, ly - 10, tw, 19, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fef3c7';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, lx, ly + 3);
+        ctx.restore();
+      };
+
+      drawLandmarkTag(132, 154, 'Gunung Batok');
+      drawLandmarkTag(595, 88, 'Gunung Semeru');
+      drawLandmarkTag(565, 376, 'Pura Luhur Poten · Lautan Pasir');
+
+      // 7. Winding Bromo Climbing Trail & 10 Pos Nodes
+      ctx.strokeStyle = 'rgba(254, 240, 138, 0.8)';
       ctx.lineWidth = 3.5;
       ctx.setLineDash([7, 6]);
       ctx.beginPath();
@@ -506,7 +672,7 @@ export const PaluGunungGame: React.FC<PaluGunungGameProps> = ({
         ctx.fillText(String(idx + 1), pt.x, pt.y + 3.5);
       });
 
-      // Summit Flag at Pos 10
+      // Summit Flag at Bibir Kawah Gunung Bromo (Pos 10)
       ctx.save();
       ctx.translate(360, 68);
       ctx.strokeStyle = '#f8fafc';

@@ -63,7 +63,7 @@ export const BerandaPanduanView: React.FC<BerandaPanduanViewProps> = ({
             {!heroLoadFailed ? (
               <img
                 src={heroSrc}
-                alt="Dino Adventure — Jelajahi Bentang Alam Indonesia!"
+                alt="D-Bromo — Dino Bentang Alam Rute Pasuruan dari Pesisir hingga Bromo"
                 referrerPolicy="no-referrer"
                 onError={handleHeroError}
                 className="w-full h-full object-cover block"
@@ -80,7 +80,7 @@ export const BerandaPanduanView: React.FC<BerandaPanduanViewProps> = ({
             )}
           </div>
 
-          {/* Direct Action Bar under the Dino Adventure Banner */}
+          {/* Direct Action Bar under the D-Bromo Banner */}
           <div className="p-4 md:p-5 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -145,13 +145,13 @@ export const BerandaPanduanView: React.FC<BerandaPanduanViewProps> = ({
         <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between shadow-sm">
           <div>
             <div className="text-xs font-semibold text-emerald-700">
-              Identitas Penjelajah Muda · IPAS SD Kelas 4
+              D-Bromo · Dino Bentang Alam Rute Pasuruan
             </div>
             <h1 className="text-xl font-bold text-slate-900 mt-1">
               Data Siswa & Progres Belajar
             </h1>
             <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-              Isi nama lengkap dan kelasmu sebelum memulai petualangan Dino Adventure agar seluruh skormu tercatat otomatis.
+              Isi nama lengkap dan kelasmu sebelum memulai petualangan D-Bromo dari Pesisir hingga Gunung Bromo agar seluruh skormu tercatat otomatis.
             </p>
 
             <form onSubmit={handleSaveStudent} className="mt-4 space-y-3.5">
