@@ -74,8 +74,8 @@ export const AsesmenView: React.FC<AsesmenViewProps> = ({
 
   // Editable Developer Profile State (Komponen 7)
   const [devProfile, setDevProfile] = useState({
-    nama: 'Arina Nuri, S.Pd.',
-    instansi: 'SD Negeri Nusantara · Pendidikan Guru Sekolah Dasar',
+    nama: 'Arina Nuri Azmi, S. Pd.',
+    instansi: 'SDN Baujeng I Beji',
     peran: 'Educational Game Developer & Interactive Content Creator',
     mapel: 'Ilmu Pengetahuan Alam dan Sosial (IPAS) — SD Kelas 4 (Kurikulum Merdeka)',
     cp: 'Peserta didik mengidentifikasi ragam bentang alam di Indonesia (daratan dan perairan) serta keterkaitannya dengan profesi, adaptasi masyarakat, dan upaya pelestarian lingkungan.',
